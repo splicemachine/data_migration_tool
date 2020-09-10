@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+	<!-- This is the configuration file used in conjunction with the database-migration tool -->
+	<!-- When you launch a data migration you need to specify the connection id and the config id -->
+	<!-- The connections define the source and target (if any databases) and are typically reused acrossed configurations -->
+	<!-- The configurations allow you to specify how the migration will occur: which object will be migrated, etc -->
+	<connections>
+		<connection id="oracle">
+		    <databaseVendorFile>/Users/erindriggers/git/customer-solutions/database-migration/src/main/resources/databaseVendors.xml</databaseVendorFile>
+		    <sourceJdbcUrl>jdbc:oracle:thin:@stl-colo-srv38:1521:boso</sourceJdbcUrl>
+		    <sourceUser>ALLINKDBA</sourceUser>
+		    <sourcePassword>bigdata4u</sourcePassword>
+			<!-- This section is only used if you manually set directConnection in the code -->
+			<!-- The target database.  This only needs to be specified if you are doing a directory connection -->
+			<!-- Where you want the schema to be automatically added to the splice machine database.  -->
+			<!-- We recommend that this is only done for testing as typically you want to have the scripts to run against  -->
+			<!-- multiple environments -->
+			<targetJdbcUrl>jdbc:splice://stl-colo-srv110:1527/splicedb</targetJdbcUrl>
+			<targetUser>splice</targetUser>
+			<targetPassword>admin</targetPassword>
+		</connection>
+		<connection id="sqlserver">
+			<databaseVendorFile>/Users/erindriggers/git/customer-solutions/database-migration/src/main/resources/databaseVendors.xml</databaseVendorFile>
+			<sourceJdbcUrl>jdbc:sqlserver://172.16.4.2:1433;databaseName=AdventureWorks2008R2</sourceJdbcUrl>
+			<sourceUser>sa</sourceUser>
+			<sourcePassword>bigdata4u</sourcePassword>
+			<targetJdbcUrl>jdbc:splice://localhost:1527/splicedb</targetJdbcUrl>
+			<targetUser>splice</targetUser>
+			<targetPassword>admin</targetPassword>
+		</connection>
+		<connection id="splicemachine">
+		    <databaseVendorFile>/Users/erindriggers/git/customer-solutions/database-migration/src/main/resources/databaseVendors.xml</databaseVendorFile>
+		    <sourceJdbcUrl>jdbc:splice://localhost:1527/splicedb</sourceJdbcUrl>
+		    <sourceUser>splice</sourceUser>
+		    <sourcePassword>admin</sourcePassword>
+		    <targetJdbcUrl>jdbc:splice://localhost:1527/splicedb</targetJdbcUrl>
+		    <targetUser>splice</targetUser>
+		    <targetPassword>admin</targetPassword>
+		</connection>
+		<connection id="postgres">
+			<databaseVendorFile>/Users/erindriggers/IdeaProjects/customer-solutions/database-migration/src/main/resources/databaseVendors.xml</databaseVendorFile>
+			<sourceJdbcUrl>jdbc:postgresql://localhost:5432/splicemachine</sourceJdbcUrl>
+			<sourceUser>dev</sourceUser>
+			<sourcePassword>123456</sourcePassword>
+			<!-- This section is only used if you manually set directConnection in the code -->
+			<!-- The target database.  This only needs to be specified if you are doing a directory connection -->
+			<!-- Where you want the schema to be automatically added to the splice machine database.  -->
+			<!-- We recommend that this is only done for testing as typically you want to have the scripts to run against  -->
+			<!-- multiple environments -->
+			<targetJdbcUrl>jdbc:splice://stl-colo-srv110:1527/splicedb</targetJdbcUrl>
+			<targetUser>splice</targetUser>
+			<targetPassword>admin</targetPassword>
+		</connection>
+	</connections>
+	<configs>
+		<config id="default">
+			<!-- Indicates where the root directory where the output files and scripts should be placed -->
+			<scriptOutputPath>/tmp/database-migration/postgres</scriptOutputPath>
+
+			<debugOptions>
+				<!--Prints output to the console.  Valid values ERROR, WARN, INFO, DEBUG or VERBOSE  -->
+				<log>WARN</log>
+				<!-- Print a list of the database stats. -->
+				<printDatabaseStats>false</printDatabaseStats>
+				<!-- Print a list of the tables -->
+				<printListOfTables>false</printListOfTables>
+				<!-- Print a list of the tables with the record count. -->
+				<printListOfTablesRecordCount>false</printListOfTablesRecordCount>
+			</debugOptions>
+			
+			<schemas>
+				<!-- Indicates if all the schemas should be processed.  If this is set to yes it will process all the schemas in the database -->
+				<!-- If it is false, it will only process the schemas in the processSchemas section -->
+				<!-- Regardless -->
+				<processAllSchemas>false</processAllSchemas>
+				<processSchemas>
+					<!-- This will be used when you have processAllSchemas = false -->
+					<!-- It should be the list of schemas that you want to process -->
+					<includeSchemas>
+						<schemaName>MDBCUSTOMER</schemaName>
+					</includeSchemas>
+					<!-- There may be times when you want to use the processAllSchemas = true, but there are some schemas you do not want to process -->
+					<excludeSchemas>
+						<schemaName></schemaName>
+					</excludeSchemas>
+				</processSchemas>
+				<!-- Provide the ability to map a source schema name to a target schema name.  If no source schema -->
+				<!-- is listed in this map, it will use the postgres schema-->
+				<schemaNameMapping>
+					<schema source="public" target="publicmine" />
+				</schemaNameMapping>
+				<!-- Column names cannot have anything but alphanumeric dash and underscore, this list helps resolve issues with source column names by replacing strings with other strings. -->
+                <columnNameReplacements>
+                        <replace source="#" target="N"/>
+                        <replace source="%" target="P"/>
+                        <replace source="$" target="M"/>
+                        <replace source="(" target="_"/>
+                        <replace source=")" target="_"/>
+                        <replace source="@" target="_"/>
+                        <replace source="^" target="_"/>
+                        <replace source="&amp;" target="_"/>
+                        <replace source="*" target="_"/>
+                </columnNameReplacements>
+                <!-- Control whether to use quoted names for target columns, this helps if there are keywords used in column names or if source is case sensitive -->
+                <doubleQuoteColumnNames>true</doubleQuoteColumnNames>
+				<!-- Regardless if you are processing all schemas or specific schemas, this section can contain a list of tables to specifically -->
+				<!-- Include or exclude from processing -->
+				<inclusionsExclusions>
+					<!-- Repeat this section for each schema that may have special processing rules for the tables -->
+					<schema name="public">
+						<tablesToInclude>
+							<!--
+							<table>testjsontable</table>
+							<table>testtexttable</table>
+							-->
+						</tablesToInclude>
+						<tablesToExclude>
+							<table></table>
+						</tablesToExclude>
+					</schema>
+				</inclusionsExclusions>
+			</schemas>
+			
+			<createDDLOptions>
+				<!-- Indicates if the table create script should be created -->
+				<createTable>true</createTable>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create table scripts should be placed -->
+				<createTableSubDirectory>/ddl/create/tables</createTableSubDirectory>
+				<!-- Indicates if varchar columns should be padded. If true, the DDL will pad any varchar column by the value specified in padVarcharColumnValue -->
+				<padVarcharColumns>false</padVarcharColumns>
+				<!-- The number to pad varchar columns with - used only if padVarcharColumns = true -->
+				<padVarcharColumnValue>25</padVarcharColumnValue>
+				<!-- Indicates if char columns should be padded. If true, the DDL will pad any char column by the value specified in padCharColumnValue -->
+				<padCharColumns>false</padCharColumns>
+				<!-- The number to pad char columns with - used only if padCharColumns = true -->
+				<padCharColumnValue>5</padCharColumnValue>
+				<!-- Look for unique index on table if no primary key -->
+				<useUniqueIndexForMissingPrimary>true</useUniqueIndexForMissingPrimary>
+				<!-- When looking at the unique indexes, only consider unique indexes that have a prefix of the following -->
+				<primaryKeyUniqueIndexPrefix>^PK_</primaryKeyUniqueIndexPrefix>
+				<!-- Indicates if the check constraints should be exported -->
+				<createCheckConstraints>true</createCheckConstraints>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create constraint scripts should be placed -->
+				<createConstraintSubDirectory>/ddl/create</createConstraintSubDirectory>
+				<!-- Indicates if the foreign keys script should be created -->
+				<createForeignKeys>true</createForeignKeys>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create index scripts should be placed -->
+				<createForeignKeysSubDirectory>/ddl/create/fkeys</createForeignKeysSubDirectory>
+				 <!-- Indicates if column defaults should be extracted and added to the DDL -->
+				<addColumnDefaults>true</addColumnDefaults>
+				<!-- Indicates if the index script should be created -->
+				<createIndexes>false</createIndexes>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create index scripts should be placed -->
+				<createIndexSubDirectory>/ddl/create/indexes</createIndexSubDirectory>				
+				<!-- Indicates if the users should be exported -->
+				<createUsers>true</createUsers>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create user scripts should be placed -->
+				<createUserSubDirectory>/ddl/create</createUserSubDirectory>
+				<!-- List of users that should be skipped -->
+				<skipUsers></skipUsers>				
+				<!-- Indicates if the sequences should be exported -->
+				<createSequence>true</createSequence>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create sequence scripts should be placed -->
+				<createSequenceSubDirectory>/ddl/create/sequence</createSequenceSubDirectory>
+				<!-- Indicates if the create roles script should be created -->
+				<createRoles>false</createRoles>
+				<!-- List of roles to create per schema -->
+				<rolesToCreate>
+					<role>{SCHEMA}_READ</role>
+					<role>{SCHEMA}_WRITE</role>
+					<role>{SCHEMA}_EXECUTE</role>
+				</rolesToCreate>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the create role scripts should be placed -->
+				<createRoleSubDirectory>/ddl/create/roles</createRoleSubDirectory>
+				<!-- Indicates if the grant read script should be created -->
+				<createGrantRead>false</createGrantRead>
+				<!-- Comma separated list of roles to grant read access -->
+				<rolesToGrantRead>{SCHEMA}_READ</rolesToGrantRead>
+				<!-- Indicates if the grant write script should be created -->
+				<createGrantWrite>false</createGrantWrite>
+				<!-- Comma separated list of roles to grant write access -->
+				<rolesToGrantRead>{SCHEMA}_WRITE</rolesToGrantRead>
+				<!-- Indicates if the grant execute script should be created -->
+				<createGrantExecute>false</createGrantExecute>
+				<!-- Comma separated list of roles to grant execute access -->
+				<rolesToGrantRead>{SCHEMA}_EXECUTE</rolesToGrantRead>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the grant scripts should be placed -->
+				<createGrantSubDirectory>/ddl/create/grants</createGrantSubDirectory>
+				<!-- Indicates if the drop table script should be created -->
+				<dropTables>true</dropTables>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the drop table scripts should be placed -->
+				<dropTableSubDirectory>/ddl/drop/tables</dropTableSubDirectory>
+				<!-- Indicates if the foreign keys script should be created -->
+				<dropForeignKeys>true</dropForeignKeys>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the drop foreign keys scripts should be placed -->
+				<dropForeignKeysSubDirectory>/ddl/drop/fkeys</dropForeignKeysSubDirectory>
+				<!-- Indicates if the drop index script should be created -->
+				<dropIndexes>true</dropIndexes>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the drop index scripts should be placed -->
+				<dropIndexSubDirectory>/ddl/drop/indexes</dropIndexSubDirectory>
+				<!-- Indicates if the drop triggers script should be created -->
+				<dropTriggers>true</dropTriggers>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the drop trigger scripts should be placed -->
+				<dropTriggerSubDirectory>/ddl/drop/triggers</dropTriggerSubDirectory>
+				<!-- Indicates if the drop sequences script should be created -->
+				<dropSequence>true</dropSequence>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the drop sequence scripts should be placed -->
+				<dropSequenceSubDirectory>/ddl/drop/sequence</dropSequenceSubDirectory>	
+				<!-- The file format for the create tables file-->
+				<createTableFileFormat>{SCHEMA}-create-tables.sql</createTableFileFormat>		
+				<!-- The file format for the drop tables file-->
+				<dropTableFileFormat>{SCHEMA}-drop-tables.sql</dropTableFileFormat>		
+				<!-- The file format for the create sequences file-->
+				<createSequenceFileFormat>{SCHEMA}-create-sequences.sql</createSequenceFileFormat>		
+				<!-- The file format for the drop sequences file-->
+				<dropSequenceFileFormat>{SCHEMA}-drop-sequences.sql</dropSequenceFileFormat>		
+				<!-- The file format for the create indexes file-->
+				<createIndexFileFormat>{SCHEMA}-create-indexes.sql</createIndexFileFormat>		
+				<!-- The file format for the drop indexes file-->
+				<dropIndexFileFormat>{SCHEMA}-drop-indexes.sql</dropIndexFileFormat>		
+				<!-- The file format for the create unique indexes file-->
+				<createUniqueIndexFileFormat>{SCHEMA}-create-unique-indexes.sql</createUniqueIndexFileFormat>		
+				<!-- The file format for the drop unique indexes file-->
+				<dropUniqueIndexFileFormat>{SCHEMA}-drop-unique-indexes.sql</dropUniqueIndexFileFormat>		
+				<!-- The file format for the create fkeys file-->
+				<createFKeyFileFormat>{SCHEMA}-create-fkeys.sql</createFKeyFileFormat>		
+				<!-- The file format for the drop fkeys file-->
+				<dropFKeyFileFormat>{SCHEMA}-drop-fkeys.sql</dropFKeyFileFormat>
+				<!-- The file format for create constraints file-->
+				<createConstraintFileFormat>{SCHEMA}-create-constraint.sql</createConstraintFileFormat>
+			</createDDLOptions>
+			
+			<!-- Properties that are common to both export and import so that imports can read exports -->			
+            <importExportDataOptions>
+                <!-- The string delimiter for each non null field.  Default is none. -->
+				<cellDelimiter>"</cellDelimiter>
+		        <!-- The column delimiter to use for the data files -->
+				<delimiter>|</delimiter>
+			</importExportDataOptions>
+			
+			
+			<!-- Indicates if the data should be exported.  This should be used sparingly because it uses JDBC and does not perform well.-->
+			<exportDataOptions>		        
+				<exportData>false</exportData>
+				<!-- These options in this section are only used if the exportData is set to true -->
+		        <!-- Indicates that the output should be compressed -->
+				<compress>false</compress>
+		        <!-- Filesystem or HDFS.  Valid values are FS or HDFS.  Defaults to FS (filesystem) -->
+				<dataOutputType>FS</dataOutputType>		
+		        <!-- Path to put the data files. -->
+				<dataOutputPath>/tmp/</dataOutputPath>
+		        <!-- Exports column names to a file as the first row.  This is useful for debugging purposes -->
+				<exportColumnNames>false</exportColumnNames>
+		        <!-- Indicates the maximum number of records per table that should be exported -->
+		        <!-- Using -1 indicates there is no limit -->
+				<limitRecords>-1</limitRecords>
+				<!-- If writing the output to a file, the maximum number of records to be written to each file. -->
+				<maxRecordsPerFile>10000000</maxRecordsPerFile>
+			</exportDataOptions>
+			
+
+			<!-- The existing objects are written to a file as is, these are not converted to Splice Machine syntax -->
+			<exportObjectOptions>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the functions should be exported to -->	
+				<exportFunctionDirectory>/export/functions</exportFunctionDirectory>
+		        <!-- Indicates if the functions should be exported -->
+				<exportFunction>true</exportFunction>
+				<!-- Indicates if all functions should be exported.  If you want to choose specific functions to export, specify them under functionList -->
+				<exportAllFunctions>true</exportAllFunctions>
+				<!-- Indicates the list of functions which should be exported -->
+				<functionList></functionList>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the packages should be exported to -->	
+				<exportPackageDirectory>/export/packages</exportPackageDirectory>
+				<!-- Indicates if all packages should be exported.  If you want to choose specific packages to export, specify them under packageList -->
+				<exportAllPackages>false</exportAllPackages>
+		        <!-- Indicates if the packages should be exported -->
+				<exportPackage>false</exportPackage>
+				<!-- List of packages that should be exported -->
+				<packageList></packageList>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the packages should be exported to -->	
+				<exportProcedureDirectory>/export/procedures</exportProcedureDirectory>
+				<!-- Indicates if all procedures should be exported.  If you want to choose specific procedures to export, specify them under procedureList -->
+				<exportAllProcedures>true</exportAllProcedures>
+		        <!-- Indicates if the procedures should be exported -->
+				<exportProcedure>true</exportProcedure>
+				<!-- Indicates the list of procedures that should be exported.  This is only used if the exportProcedure is true and exportAllProcedrres is false -->
+				<procedureList></procedureList>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the packages should be exported to -->	
+				<exportViewsDirectory>/export/views</exportViewsDirectory>
+				<!-- Indicates if all views should be exported.  If you want to choose specific procedures to export, specify them under procedureList -->
+				<exportAllViews>true</exportAllViews>
+		        <!-- Indicates if the views should be exported -->
+				<exportViews>true</exportViews>
+				<!-- Indicates the list of views that should be exported.  This is only used if the exportViews is true and exportAllViews is false -->
+				<viewList></viewList>
+				<!-- The directory relative to the root directory (scriptOutputPath above) where the triggers should be exported to -->	
+				<exportTriggersDirectory>/export/triggers</exportTriggersDirectory>
+				<!-- Indicates if all views should be exported.  If you want to choose specific trigger to export, specify them under triggerList -->
+				<exportAllTriggers>true</exportAllTriggers>
+		        <!-- Indicates if the procedures should be exported -->
+				<exportTriggers>true</exportTriggers>
+				<!-- Indicates the list of triggers that should be exported.  This is only used if the exportTriggers is true and exportAllTriggerss is false -->
+				<triggerList></triggerList>
+		        <!-- Indicates if the roles should be exported -->
+				<exportRoles>false</exportRoles>
+			</exportObjectOptions>
+			
+			<!-- Indicates if import scripts should be created for each table -->
+			<!-- This is used in combination with the create table script. -->
+			<spliceImport>
+				<!-- Create one import file for each schema -->
+				<createForEachSchema>false</createForEachSchema>
+				<!-- Create import file for each table, if createForEachSchema is true this is ignored -->
+				<createForEachTable>true</createForEachTable>
+				<!-- Indicates the sub directory where the import scripts should be created -->
+				<importScriptSubDirectory>/import/</importScriptSubDirectory>
+				<!-- Indicates the root directory where the data resides on HDFS -->
+				<importPathOnHDFS>/data/sqoop</importPathOnHDFS>
+				<!--  Indicates the bad record path on HDFS -->
+				<badPathOnHDFS>/bad</badPathOnHDFS>
+				<!-- The format of timestamps stored in the file. You can set this to empty if there are no timestamps in the file, or if the format of any timestamps in the file match the Java.sql.Timestamp default format, which is: "yyyy-MM-dd HH:mm:ss" -->
+				<timestampFormat>yyyy-MM-dd HH:mm:ss</timestampFormat>
+				<!-- The format of datestamps stored in the file. You can set this to null if there are no date columns in the file, or if the format of any dates in the file match pattern: "yyyy-mm-dd". -->
+				<dateFormat>yyyy-MM-dd HH:mm:ss</dateFormat>
+				<!-- The format of timeFormats stored in the file. You can set this to null if there are no time columns in the file, or if the format of any times in the file match pattern: "hh:mm:ss". -->
+				<timeFormat>yyyy-MM-dd HH:mm:ss</timeFormat>
+				<!-- failBadRecordCount -->
+				<failBadRecordCount>1</failBadRecordCount>
+				<!-- The file format for the create tables file-->
+				<importForEachSchemaFileFormat>{SCHEMA}-import-tables.sql</importForEachSchemaFileFormat>
+				<!-- The file format for the create tables file-->
+				<importForEachTableFileFormat>import-{SCHEMA}-{TABLE}.sql</importForEachTableFileFormat>
+				<!-- Set to true if you want to truncate table before import -->
+				<addTruncate>false</addTruncate>
+				<!-- Set to true if you want to call vacuum() before import -->
+				<addVacuum>false</addVacuum>
+				<!-- Set to true if you want to call major compaction on the table after import -->
+				<addMajorCompact>false</addMajorCompact>
+			</spliceImport>
+			
+			
+			<!-- This section is for creating the sqoop scripts that will be used to export the data from the source database and import them into the splice database  -->
+			<!-- This is the preferred way to take data from the source database, put it on hdfs and then use the splice import scripts to load it into splice machine -->
+			<sqoopOptions>
+				<!-- Indicates the directory that contains the run-sqoop-full.sh script-->
+				<sqoopDirectory>/home/splice/sqoop</sqoopDirectory>
+				<sqoopFilesSubDirectory>/sqoop</sqoopFilesSubDirectory>				
+				<!-- Indicates the sqoop extract / import scripts should be created -->
+				<sqoopScripts>true</sqoopScripts>	
+				<!-- Indicates if query files (select statements) will be generated for each table -->
+				<sqoopCreateQueryFiles>true</sqoopCreateQueryFiles>	
+				<!-- Indicates the sub directory where the query files should be created. This sub-directory will be under the directory specified in scriptOutputPath -->
+				<sqoopQuerySubDirectory>/query/</sqoopQuerySubDirectory>
+				<!-- Indicates the file format for the query file-->
+				<sqoopQueryFileNameFormat>query-{SCHEMA}-{TABLE}.sql</sqoopQueryFileNameFormat>
+				<!-- Indicates the location and file name of the sqoop config file -->
+				<!-- The value of the CONFIG variable in the "/extract-" + currentSchema.toLowerCase() + "-full.sh" file -->
+				<sqoopConfigFile>/tmp/database-migration/postgres/sqoop/postgres-config.txt</sqoopConfigFile>
+				<!-- Indicates the location of the sqoop table list file -->
+				<!-- The path of the TABLES variable in the "/extract-" + currentSchema.toLowerCase() + "-full.sh" file -->
+				<sqoopTableListPath>/tmp/database-migration/postgres/sqoop/</sqoopTableListPath>
+				<!-- Indicates the location of the sqoop import files -->
+				<sqoopImportPath>/tmp/database-migration/postgres/import</sqoopImportPath>
+				<!-- Indicates the location of the sqoop logs -->
+				<!-- The path of the LOGFILE variable in the "/extract-" + currentSchema.toLowerCase() + "-full.sh" file -->
+				<sqoopLogPath>/tmp/database-migration/postgres/logs</sqoopLogPath>
+				<hadoopBin>/opt/cloudera/parcels/CDH/lib/hadoop/sbin</hadoopBin>
+				<spliceBin>/opt/cloudera/parcels/SPLICEMACHINE/bin</spliceBin>
+				<sqoopExportScript>
+					<!-- This is not used and should be removed. -->
+					<configFile>/tmp/sqoop/config.txt</configFile>
+					<!-- This is not used and should be removed. -->
+					<extractScriptFileNameFormat>extract-{SCHEMA}.txt</extractScriptFileNameFormat>
+					<!-- This is not used and should be removed. -->
+					<tableListFileNameFormat>tables-{SCHEMA}.txt</tableListFileNameFormat>
+					<!-- The path to the directory containing the import sql statements.  Each table being imported must have an associated file in this directory named in the format import-<schema>-<table>.sql -->
+					<importDir>/tmp/</importDir>
+				</sqoopExportScript>
+
+
+
+			</sqoopOptions>
+			
+			<!-- Data Type mapping -->
+			<!-- There are some problems converting oracle DATE fields to Splice Machine syntax as  -->
+			<!-- the dates could be a Splice DATE, TIMESTAMP, or TIME  -->
+			<!-- Additionally, there is a situation where the NUMBER field in oracle may not have a negative -->
+			<!-- precision / scale defined.  We need to map that correctly in Splice Machine -->
+			<!-- For columns that are in a lot of tables, specify the schema and table as * -->
+			<dataTypeMapping>
+				<dataType name="DATE">
+					<column schema="*" table="*" column="CREATE_DT" dataType="TIMESTAMP"/>
+					<column schema="*" table="*" column="UPDATE_DT" dataType="TIMESTAMP"/>
+				</dataType>
+				<dataType name="DECIMAL">
+				</dataType>
+				<dataType name="NUMERIC">
+				</dataType>
+				<dataType name="TIMESTAMP">
+					<column schema="*" table="*" column="CREATE_DT" dataType="TIMESTAMP"/>
+					<column schema="*" table="*" column="UPDATE_DT" dataType="TIMESTAMP"/>
+				</dataType>
+				<dataType name="json">
+					<column schema="*" table="*" column="*" dataType="CLOB"/>
+				</dataType>
+			</dataTypeMapping>
+		</config>
+	</configs>
+</migration>

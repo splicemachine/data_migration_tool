@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+	<vendors>
+		<vendor id="db2">
+			<migrationClass>com.splicemachine.cs.databasemigration.vendors.Ibmdb2Database</migrationClass>
+			<database>
+				<useSchema>true</useSchema>
+			</database>
+			<jdbc>
+				<prefix>db2</prefix>
+				<label>DB2</label>
+				<driverClass>com.ibm.db2.jcc.DB2Driver</driverClass>
+				<urlFormat><![CDATA[jdbc:db2://<HOST>:<PORT>/<DATABASE_NAME>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select {COLUMNS} from {TABLE} fetch first {LIMIT_NUM} rows only]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<vendor id="jtds">
+			<jdbc>
+				<prefix>jtds</prefix>
+				<label>SQLServer</label>
+				<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+				<urlFormat><![CDATA[jdbc:jtds:sqlserver://<host>:<port>/<database_name>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select TOP {LIMIT_NUM} {COLUMNS} from {TABLE}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<vendor id="microsoft">
+			<jdbc>
+				<prefix>microsoft</prefix>
+				<label>SQLServer</label>
+				<driverClass>com.microsoft.jdbc.sqlserver.SQLServerDriver</driverClass>
+				<urlFormat><![CDATA[jdbc:microsoft:sqlserver://<server_name>:<port>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select TOP {LIMIT_NUM} {COLUMNS} from {TABLE}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<!--
+			MYSQL 
+			server instance == not identified with catalog, just a set of databases
+			database == catalog == a namespace within the server.
+			schema == not used (empty in JDBC driver, not used in official docs).
+			user == named account, who is can connect to server and use (but can not own - no concept of ownership) objects in one or more databases
+			to identify any object you need (database name + object name)
+			jdbc:mysql://hostname/ databaseName
+		 -->
+		<vendor id="mysql">
+			<jdbc>
+				<prefix>mysql</prefix>
+				<label>MySQL</label>
+				<driverClass>com.mysql.jdbc.Driver</driverClass>
+				<urlFormat><![CDATA[jdbc:mysql://<HOST>:<PORT>/<DATABASE_NAME>]]></urlFormat>
+			</jdbc>
+		</vendor>
+		<!-- 
+		    Oracle:
+			server instance == database == catalog == all data managed by same execution engine
+			schema == namespace within database, identical to user account
+			user == schema owner == named account, identical to schema, who can connect to database, who owns the schema and use objects possibly in other schemas
+			to identify any object you need (schema name + object name)
+			jdbc:oracle:thin:@hostname:port Number:databaseName
+		 -->
+		<vendor id='oracle'>
+			<migrationClass>com.splicemachine.cs.databasemigration.vendors.OracleDatabase</migrationClass>
+			<database>
+				<useSchema>true</useSchema>
+			</database>
+			<jdbc>
+				<prefix>oracle</prefix>
+				<label>Oracle</label>
+				<driverClass>oracle.jdbc.OracleDriver</driverClass>
+				<urlFormat><![CDATA[jdbc:oracle:thin:@<HOST>:<PORT>:<DATABASE_NAME>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select {COLUMNS} from {TABLE} where ROWNUM < {LIMIT_NUM}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<!--
+			POSTGRESQL
+			server instance == db cluster == all data managed by same execution engine
+			database == catalog == single database within db cluster, isolated from other databases in same db cluster
+			schema == namespace within database
+			user == named account, who can connect to database, own and use objects in database
+			to identify any object you need (database name + schema name + object name)
+			jdbc:postgresql://host:port/database
+		 
+		 -->
+		<vendor id="postgresql">
+			<migrationClass>com.splicemachine.cs.databasemigration.vendors.PostgresDatabase</migrationClass>
+			<jdbc>
+				<prefix>postgresql</prefix>
+				<label>Postgres</label>
+				<driverClass>org.postgresql.Driver</driverClass>
+				<urlFormat><![CDATA[jdbc:postgresql://<server_name>:<port>/database]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select {COLUMNS} from {TABLE} LIMIT {LIMIT_NUM}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<vendor id="splice">
+			<migrationClass>com.splicemachine.cs.databasemigration.vendors.SpliceDatabase</migrationClass>
+			<database>
+				<useSchema>true</useSchema>
+			</database>
+			<jdbc>
+				<prefix>splice</prefix>
+				<label>SpliceMachine</label>
+				<driverClass>com.splicemachine.db.jdbc.ClientDriver</driverClass>
+				<urlFormat><![CDATA[jdbc:splice://<server_name>:<port>/database]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select {COLUMNS} from {TABLE} {LIMIT {LIMIT_NUM}}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<vendor id="sqlserver">
+			<migrationClass>com.splicemachine.cs.databasemigration.vendors.SQLServerDatabase</migrationClass>
+			<jdbc>
+				<prefix>sqlserver</prefix>
+				<label>SQLServer</label>
+				<driverClass>com.microsoft.sqlserver.jdbc.SQLServerDriver</driverClass>
+				<urlFormat><![CDATA[jdbc:sqlserver://<server_name>:<port>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select TOP {LIMIT_NUM} {COLUMNS} from {TABLE}]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+		<vendor id="sybase">
+			<jdbc>
+				<prefix>sybase</prefix>
+				<label>Sybase</label>
+				<driverClass>com.sybase.jdbc.SybDriver</driverClass>
+				<urlFormat><![CDATA[jdbc:sybase:Tds:<HOST>:<PORT>/<DATABASE_NAME>]]></urlFormat>
+			</jdbc>
+			<sqlSyntax>
+				<selectWithLimit><![CDATA[select {COLUMNS} from {TABLE} fetch first {LIMIT_NUM} rows only]]></selectWithLimit>
+			</sqlSyntax>
+		</vendor>
+	</vendors>
+</database>
